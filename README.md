@@ -11,6 +11,8 @@ Provided that your DAW/midi editor also exports them!
 Place markers with the names **LoopStart** and **LoopEnd** in your midi to define loop points.
 If none of these markers are in the midi, the song will simply be repeated in its entirety.
 If you don't want a loop (e.g. for jingles), add a marker with the name **NoLoop** in the midi.
+### Logarithmic
+Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your midi was created with a Synthesizer with linear volume ratios, you can do bla to have the BMS converted logarithmic values.
 
 ## Prepation
 You need:
