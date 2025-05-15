@@ -4,7 +4,7 @@ Converts Midis to *Super Mario Galaxy 1 &amp; 2's* BMS sequence format
 ## Usage
 Drag and drop your Midi on the DragMidiOnMe.bat to get your BMS file.
 ### Instruments
-The instrument and bank commands defined in the Midi are transferred directly to the BMS.
+The instrument and bank values defined in the Midi are transferred directly to the BMS.
 For example, if you have mixed a Midi with the soundfont file extracted from the game, the exact same instruments will also be used in the BMS.
 Provided that your DAW/midi editor also exports them!
 ### Looping
