@@ -34,7 +34,7 @@ Pitch Wheel and BPM changes during the song are also supported.
 Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your midi was created with a Synthesizer with linear volume ratios, you can enter "True" in place of ***LogarithmicConvert?*** in command line (or use the bat file per drag and drop) to have the BMS converted logarithmic values.
 
 ### PPQN
-Currently, the PPQN (the "resolution" of a Midi) will be set to 120 by default in the exported BMS, which is the standard of the Galaxy games.
+Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by default in the exported BMS, which is the standard of the Galaxy games.
 
 ## Preparation
 You need:
