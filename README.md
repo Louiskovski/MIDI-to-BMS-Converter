@@ -19,11 +19,24 @@ If none of these markers are in the midi, the song will simply end.
 
 Note that if you have a **LoopAll** but also a **LoopStart** and **LoopEnd** marker in the midi, it will use the loop points instead of looping the whole song.
 
+### Midi Controllers
+Currently, the following midi controllers will be imported to the BMS:
+
+- **CC 91** Reverb (Wet/Dry)
+- **CC 92** Tremolo (Wet/Dry)
+- **CC 93** Tremolo (Rate) - If CC 92 is used but not this one, the game will use a default value of 50%
+- **CC 01** Vibrato (Wet/Dry)
+- **CC 02** Vibrato (Rate) - If CC 1 is used but not this one, the game will use a default value of 50%
+
+Pitch Wheel and BPM changes during the song are also supported.
 
 ### Logarithmic
 Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your midi was created with a Synthesizer with linear volume ratios, you can enter "True" in place of ***LogarithmicConvert?*** in command line (or use the bat file per drag and drop) to have the BMS converted logarithmic values.
 
-## Prepation
+### PPQN
+Currently, the PPQN (the "resolution" of a Midi) will be set to 120 by default in the exported BMS, which is the standard of the Galaxy games.
+
+## Preparation
 You need:
 * **Python**
 * **Mido Python Module**
