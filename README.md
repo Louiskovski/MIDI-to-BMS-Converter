@@ -43,9 +43,10 @@ You need:
 
 To install Mido, open command line and enter ***pip install mido*** 
 
+The Bat files with "compressed" requires path to a compress tool, such as yaz0enc.exe from [RARC Tools](https://kuribo64.net/get.php?id=5c98RKoV3uJdGBin). Open the Bat with a text editor and replace "C:\Tools\yaz0enc.exe" with path to the exe.
 
 ## Plans for Updates
 * Timing and Chord Generation
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
 
-The Bat files with "compressed" requires path to a compress tool, such as yaz0enc.exe from [RARC Tools](https://kuribo64.net/get.php?id=5c98RKoV3uJdGBin). Open the Bat with a text editor and replace "C:\Tools\yaz0enc.exe" with path to the exe.
+
