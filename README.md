@@ -22,6 +22,11 @@ Note that if you have a **LoopAll** but also a **LoopStart** and **LoopEnd** mar
 ### Midi Controllers
 Currently, the following midi controllers will be imported to the BMS:
 
+#### Basic
+- **CC 07** Channel Volume
+- **CC 10** Pan
+
+#### Effects
 - **CC 91** Reverb (Wet/Dry)
 - **CC 92** Tremolo (Wet/Dry)
 - **CC 93** Tremolo (Rate) - If CC 92 is used but not this one, the game will use a default value of 50%
@@ -46,7 +51,7 @@ To install Mido, open command line and enter ***pip install mido***
 The Bat files with "compressed" requires path to a compress tool, such as yaz0enc.exe from [RARC Tools](https://kuribo64.net/get.php?id=5c98RKoV3uJdGBin). Open the Bat with a text editor and replace "C:\Tools\yaz0enc.exe" with path to the exe.
 
 ## Plans for Updates
-* Timing and Chord Generation
+* Timing and Chord Generation via Midi
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
 
 
