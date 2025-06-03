@@ -1,5 +1,7 @@
 # MIDI-to-BMS-Converter
-Converts Midis to *Super Mario Galaxy 1 &amp; 2's* BMS sequence format
+Converts Midis to *Super Mario Galaxy 1 &amp; 2's* BMS sequence format.
+
+Can also generate timing channels (for beats and CIT usage) and CIT files (chord and scale for effects).
 
 ## Usage
 Drag and drop your Midi on one of the bat files or use command line usage:
@@ -40,6 +42,33 @@ Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your mi
 
 ### PPQN
 Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by default in the exported BMS, which is the standard of the Galaxy games.
+
+### Timing-Channel and CIT Generation
+Beat data for timing things like beat blocks, as well as associated chord and scale data for effects such as item jingles can be generated as follows:
+#### Timing/Beat
+Add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
+
+This also tells the script that it should generate this at all.
+#### Chord and Scales
+Chords and scale note pairs are defined in the Midi as follows. These notes must be on a track for channel 0. Any other channel is not used for this.
+![screenshot](CIT_Explain1.png)
+##### Bass Note
+Is defined in octave range 5 (C4 (midi 48) - B4 (midi 59)). Only one is allowed per chord and scale set.
+
+The length of the note is also defined as the range in which the chord and scale notes are taken into account. As shown in the picture:
+![screenshot](CIT_Explain2.png)
+
+##### Chord Notes
+Are defined in the octave range 6 (C5 (midi 60) - B5 (midi 71)). Up to X notes are possible.
+
+##### Scale Note Pairs
+Are specified in octave range 7 (C6 (midi 72) - B6 (midi 83)).
+
+Converting:
+If you now convert the midi, additional information is displayed, such as chords and scalepair notes.
+At the end bla in Multi BGM Liste einfügen.
+
+infos zu intobeat, loopbeat. wie man bms und cit ins spiel einfügt.
 
 ## Preparation
 You need:
