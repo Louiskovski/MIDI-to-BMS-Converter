@@ -1146,7 +1146,7 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, ppqn_target=120):
 
 
 ## HAUPTACTION ##
-def START(midifile, Output_BMS, TimingChannel=None, Takt=0, LinearToLogarithmic=False, PPQNtargetValue=120):
+def START(midifile, Output_BMS, LinearToLogarithmic=False, PPQNtargetValue=120):
     with open(Output_BMS, "w+b") as f:
         
         # Infos sammeln
@@ -1202,6 +1202,19 @@ def START(midifile, Output_BMS, TimingChannel=None, Takt=0, LinearToLogarithmic=
         ## ---LinearToLogarithmic Check--- ##
         if LinearToLogarithmic == True:
             print("Volumes will be converted from linear to logarithmic.")
+        
+        ## ---Timing Channel Check--- ##
+        TaktMarker = Find_Marker_Position(midifile, "BEAT_4/4") # Nach Beat Marker in Midi suchen
+        if TaktMarker is not None:
+            TimingChannel = True
+            Takt = 0
+        else:
+            TaktMarker = Find_Marker_Position(midifile, "BEAT_3/4")
+            if TaktMarker is not None:
+                TimingChannel = True
+                Takt = 1
+            else:
+                TimingChannel = False
         
         ## ---Global Midievents ("Tempotrack")--- ##
         output = GLOBALMIDIEVENTS_to_BMSDATA(midifile, AllTicks, Loop)
@@ -1385,7 +1398,7 @@ def START(midifile, Output_BMS, TimingChannel=None, Takt=0, LinearToLogarithmic=
             ### --- Schreibe Noten und Events in Datei ---
             
             ## Timing and Chord Channel ##
-            if TimingChannel > 0 and chID == 0:
+            if TimingChannel == True and chID == 0:
                 print()
                 print("Timing Channel included. ")# + str(chID))
                 output, CIToutput, C3Taktblock = MIDICHANNEL_to_TIMINGandCHORD(midifile, chID, Takt, Loop)
@@ -1532,13 +1545,11 @@ def START(midifile, Output_BMS, TimingChannel=None, Takt=0, LinearToLogarithmic=
 if __name__ == "__main__":
     Input_MIDI = sys.argv[1]
     Output_BMS = sys.argv[2]
-    TimingChannel = sys.argv[3]
-    Takt = sys.argv[4]
-    LinearToLogarithmic = sys.argv[5]
+    LinearToLogarithmic = sys.argv[3]
     
-    print("--- 🎵 Midi to BMS v.0.9.5 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.6 🎶 ---") # to check Version
     print()
-    START(Input_MIDI, Output_BMS, int(TimingChannel), int(Takt), LinearToLogarithmic)#TimingChannel=None, LinearToLogarithmic=False, PPQNtargetValue=120)
+    START(Input_MIDI, Output_BMS, LinearToLogarithmic)#TimingChannel=None, LinearToLogarithmic=False, PPQNtargetValue=120)
     print()
     print("✅ Done!")
     print()
