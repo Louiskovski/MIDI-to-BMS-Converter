@@ -46,7 +46,7 @@ Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by def
 ### Timing and CIT Data Generation
 Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows:
 
-[Example Midis can be found here]([https://github.com/SuperHackio/LaunchCamPlus](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp))
+[Example Midis can be found here](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp)
 
 #### Timing/Beat
 To enable timing and chord generation for your midi, add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
@@ -77,6 +77,9 @@ Are specified in *octave range 7 (C6 (midi 72) - B6 (midi 83))*.
 When converting a setu midi, additional information including which notes, will be displayed.
 
 At the end you will get a *IntoBeat* and *LoopBeat* value, which you need to enter in the MultiBgmInfo for your song, if it is meant for combination with streamed AST. If it is an BMS-only song, you can ignore these values.
+
+#### Additional Notes
+If you want to use your timing and chord data for a streamed song, the song must be in AST format at 32000 Hz.
 
 
 ## Preparation
