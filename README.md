@@ -46,15 +46,15 @@ Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your mi
 Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by default in the exported BMS, which is the standard of the Galaxy games.
 
 ### Timing and CIT Data Generation
-Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows:
-
 [Example Midis can be found here](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp)
 
+Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows:
 #### Timing/Beat
 To enable timing and chord generation for your midi, add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
 
 #### Chord and Scales
 Chords and scale note pairs are defined in the Midi as follows. These notes must be on a track for channel 0. Any other channel is not used for this.
+
 ![screenshot](CIT_Explain1.png)
 ##### Bass Note
 Defines the harmonic basis for the chord. This is necessary for each chord set.
@@ -76,9 +76,9 @@ These notes are defined in ascending order in the midi.
 Are specified in *octave range 7 (C6 (midi 72) - B6 (midi 83))*.
 
 #### Converting
-When converting a setu midi, additional information including which notes, will be displayed.
+When converting a prepared Midi, additional information, including the notes, is displayed.
 
-At the end you will get a *IntoBeat* and *LoopBeat* value, which you need to enter in the MultiBgmInfo for your song, if it is meant for combination with streamed AST. If it is an BMS-only song, you can ignore these values.
+At the end you will get a *IntoBeat* and *LoopBeat* value, which you need to enter in the MultiBgmInfo for your song, if it is meant for combination with streamed AST (Multi-BGM). If it is an BMS-only song, you can ignore these values.
 
 #### Additional Notes
 If you want to use your timing and chord data for a streamed song, the song must be in AST format at 32000 Hz.
