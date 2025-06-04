@@ -43,32 +43,41 @@ Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your mi
 ### PPQN
 Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by default in the exported BMS, which is the standard of the Galaxy games.
 
-### Timing-Channel and CIT Generation
-Beat data for timing things like beat blocks, as well as associated chord and scale data for effects such as item jingles can be generated as follows:
-#### Timing/Beat
-Add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
+### Timing and CIT Data Generation
+Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows:
 
-This also tells the script that it should generate this at all.
+Example Midis can be found here.https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp
+
+#### Timing/Beat
+To enable timing and chord generation for your midi, add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
+
 #### Chord and Scales
 Chords and scale note pairs are defined in the Midi as follows. These notes must be on a track for channel 0. Any other channel is not used for this.
 ![screenshot](CIT_Explain1.png)
 ##### Bass Note
-Is defined in octave range 5 (C4 (midi 48) - B4 (midi 59)). Only one is allowed per chord and scale set.
+Defines the harmonic basis for the chord. This is necessary for each chord set.
 
-The length of the note is also defined as the range in which the chord and scale notes are taken into account. As shown in the picture:
+Is defined in *octave range 5 (C4 (midi 48) - B4 (midi 59))*. Only one is allowed per chord and scale set.
+
+The length of the bass note is also defined as the range in which the chord and scale notes are taken into account. As shown in the picture:
 ![screenshot](CIT_Explain2.png)
 
 ##### Chord Notes
-Are defined in the octave range 6 (C5 (midi 60) - B5 (midi 71)). Up to X notes are possible.
+Chords whose notes are used by objects such as blue flip panels, as well as for menu sounds and 2-player luma.
+
+Are defined in *octave range 6 (C5 (midi 60) - B5 (midi 71))*. Up to 7 notes are possible.
 
 ##### Scale Note Pairs
-Are specified in octave range 7 (C6 (midi 72) - B6 (midi 83)).
+Music scales or harmonic ladder. These are mainly used for melody jingles such as Coin-Appear or Sling stars.
+These notes are defined in ascending order in the midi.
 
-Converting:
-If you now convert the midi, additional information is displayed, such as chords and scalepair notes.
-At the end bla in Multi BGM Liste einfügen.
+Are specified in *octave range 7 (C6 (midi 72) - B6 (midi 83))*.
 
-infos zu intobeat, loopbeat. wie man bms und cit ins spiel einfügt.
+#### Converting
+When converting a setu midi, additional information including which notes, will be displayed.
+
+At the end you will get a *IntoBeat* and *LoopBeat* value, which you need to enter in the MultiBgmInfo for your song, if it is meant for combination with streamed AST. If it is an BMS-only song, you can ignore these values.
+
 
 ## Preparation
 You need:
@@ -83,6 +92,7 @@ The Bat files with "compressed" requires path to a compress tool, such as yaz0en
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
 
 ## Special Thanks wip
-SY28, Super Hackio und Xayrga for documenting BMS format
-TZGaming
+* **SY24, Super Hackio und Xayrga** for documenting BMS format
+* **TZGaming** for some tipps about the game's soundfont
+* **VGMTrans Team** for their helpful tool that helped analysing the format
 
