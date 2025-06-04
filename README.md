@@ -96,8 +96,8 @@ The Bat files with "compressed" requires path to a compress tool, such as yaz0en
 ## Plans for Updates
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
 
-## Special Thanks wip
+## Special Thanks
 * **SY24, Super Hackio und Xayrga** for documenting BMS format
 * **TZGaming** for some tipps about the game's soundfont
 * **VGMTrans Team** for their helpful tool that helped analysing the format
-
+* **Carla** for their helpful modular audio plugin host, that allows for great soundfont and effects usage in any daw!
