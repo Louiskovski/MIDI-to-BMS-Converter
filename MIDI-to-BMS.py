@@ -248,10 +248,13 @@ def GLOBALMIDIEVENTS_to_BMSDATA(midifile, AllTicks, Loop, ppqn_target=120):
     events = []
     
     for track in mid.tracks:
-        abs_time = 0
+        abs_time_real = 0.0  #float für genauere ppqn umrechnung
+        abs_time = 0 
         for msg in track:
-            scaled_time = int(round(msg.time * ppqn_scale))
-            abs_time += scaled_time
+            #scaled_time = int(round(msg.time * ppqn_scale))
+            #abs_time += scaled_time
+            abs_time_real += msg.time * ppqn_scale
+            abs_time = int(round(abs_time_real))
 
             # Marker für LoopStart und LoopEnd
             if msg.type == 'marker':
@@ -373,9 +376,14 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
     # Events sammeln:
     for track in mid.tracks:
+    
+        time_acc_real = 0.0   # float für exakte Berechnung
         time_acc = 0
         for msg in track:
-            time_acc += int(round(msg.time * ppqn_scale))
+            #time_acc += int(round(msg.time * ppqn_scale))
+            time_acc_real += msg.time * ppqn_scale
+            time_acc = int(round(time_acc_real))  # jetzt sauber gerundet
+            
             if msg.type == 'note_on' and msg.velocity > 0 and hasattr(msg, "channel") and msg.channel == target_channel:
                 if msg.note in trigger_range:
                     trigger_events.append((time_acc, msg.note))
@@ -1011,10 +1019,13 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, ppqn_target=120):
 
                     
     for track in mid.tracks:
+        time_acc_real = 0.0 # float für exakte ppqn umrechnung
         time_acc = 0
         for msg in track:
-            scaled_time = int(round(msg.time * ppqn_scale)) # PPQN
-            time_acc += scaled_time
+            #scaled_time = int(round(msg.time * ppqn_scale)) # PPQN
+            #time_acc += scaled_time
+            time_acc_real += msg.time * ppqn_scale
+            time_acc = int(round(time_acc_real))
 
             #Marker für LoopStart und LoopEnd aufspüren
             if msg.type == 'marker':
@@ -1547,7 +1558,7 @@ if __name__ == "__main__":
     Output_BMS = sys.argv[2]
     LinearToLogarithmic = sys.argv[3]
     
-    print("--- 🎵 Midi to BMS v.0.9.6 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.7 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic)#TimingChannel=None, LinearToLogarithmic=False, PPQNtargetValue=120)
     print()
