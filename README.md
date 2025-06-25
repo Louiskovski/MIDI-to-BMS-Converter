@@ -1,7 +1,7 @@
 # MIDI-to-BMS-Converter
 Converts Midis to *Super Mario Galaxy 1 &amp; 2's* BMS sequence format.
 
-Can also generate timing channels (for beats and CIT usage) and CIT files (chord and scale for effects).
+Can also generate timing tracks (for beats and CIT usage) and CIT files (chord and scale for effects).
 
 ## Usage
 Drag and drop your Midi on one of the bat files or use command line usage:
@@ -9,7 +9,7 @@ Drag and drop your Midi on one of the bat files or use command line usage:
 
 Example: `python MIDI-to-BMS.py HappyBirthday.mid ToYou.bms True`
 ### Instruments
-The instrument and bank values defined in the Midi are transferred directly to the BMS.
+The instrument event values defined in the Midi (Program Change, Bank Select (MSB and LSB)) are transferred directly to the BMS.
 For example, if you have mixed a Midi with the soundfont file extracted from the game, the exact same instruments will also be used in the BMS.
 Provided that your DAW/midi editor also exports them!
 
@@ -27,6 +27,7 @@ Note that if you have a **LoopAll** but also a **LoopStart** and **LoopEnd** mar
 Currently, the following midi controllers will be imported to the BMS:
 
 #### Basic
+- **CC 00** Bank Select (MSB)
 - **CC 07** Channel Volume
 - **CC 10** Pan
 
@@ -97,7 +98,7 @@ The Bat files with "compressed" requires path to a compress tool, such as yaz0en
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
 
 ## Special Thanks
-* **SY24, Super Hackio und Xayrga** for documenting BMS format
+* **SY24, Super Hackio and Xayrga** for documenting BMS format
 * **TZGaming** for some tipps about the game's soundfont
 * **VGMTrans Team** for their helpful tool that helped analysing the format
 * **Carla** for their helpful modular audio plugin host, that allows for great soundfont and effects usage in any daw!
