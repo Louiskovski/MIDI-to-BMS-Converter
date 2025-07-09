@@ -150,7 +150,7 @@ def assign_voice(note, ChannelNum):
     if note in note_to_voice:
         return note_to_voice[note]
     if not free_voices:
-        raise RuntimeError("Error! Channel " + ChannelNum + " has more than 7 overlapping notes!")
+        raise RuntimeError(" --- Error! Channel " + str(ChannelNum) + " has more than 7 overlapping notes! ---")
     voice = free_voices.pop(0)
     note_to_voice[note] = voice
     voice_to_note[voice] = note
@@ -1558,7 +1558,7 @@ if __name__ == "__main__":
     Output_BMS = sys.argv[2]
     LinearToLogarithmic = sys.argv[3]
     
-    print("--- 🎵 Midi to BMS v.0.9.7 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.7.5 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic)#TimingChannel=None, LinearToLogarithmic=False, PPQNtargetValue=120)
     print()
