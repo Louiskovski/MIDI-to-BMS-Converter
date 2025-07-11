@@ -1136,19 +1136,26 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, ppqn_target=120):
                 # Patch and Bank Stuff #
                 elif msg.type == 'program_change':
                     if last_bank is not None:
-                        output += bytes([0xE1, last_bank & 0xFF, msg.program & 0xFF]) #E1 command (combines patch and bank select) # Note: BMS_DEC tool has problems with that
+                        #output += bytes([0xE1, last_bank & 0xFF, msg.program & 0xFF]) #E1 command (combines patch and bank select)
+                        output += bytes([0xE2, last_bank & 0xFF, 0xE3, msg.program & 0xFF]) #Lass E2 und E3 nehmen, da E1 von vielen Tools wie JAISeqX Synthesizer nicht unterstützt wird.
                         last_bank = None
                     else:
                         output += bytes([0xE3, msg.program & 0xFF]) # E3 command: Only for patch change 
             
             
             
-                # Pitch Wheel #
-                elif msg.type == 'pitchwheel': #and msg.channel == target_channel:
-                    #Umrechnen: durch 8 teilen
-                    pitch_value = msg.pitch >> 3  # Int-Division durch 8, inklusive Vorzeichen
-                    pitch_bytes = pitch_value.to_bytes(1, byteorder='big', signed=True)
-                    output += bytes([0xB8, 0x01]) + pitch_bytes
+                elif msg.type == 'pitchwheel':
+                    # in MIDI: −8192 - +8191
+                    #durch 8 teilen ( >> 3 ) ->  −1024 - +1023  (±0x0400)
+                    pitch_value = msg.pitch >> 3                     #int
+
+                    # in 2 bytes:
+                    pitch_bytes = pitch_value.to_bytes(
+                        2, byteorder='big', signed=True
+                    )
+
+                    output += bytes([0xB9, 0x01]) + pitch_bytes
+
             ## TODO: E2 command for only changing bank ?
             
     output += bytes([0xFF]) #Ende. Überhaupt notwendig, wenns loopt?
@@ -1558,7 +1565,7 @@ if __name__ == "__main__":
     Output_BMS = sys.argv[2]
     LinearToLogarithmic = sys.argv[3]
     
-    print("--- 🎵 Midi to BMS v.0.9.7.5 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.8 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic)#TimingChannel=None, LinearToLogarithmic=False, PPQNtargetValue=120)
     print()
