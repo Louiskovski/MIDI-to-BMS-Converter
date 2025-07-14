@@ -2,7 +2,6 @@ import sys
 import mido
 import os
 import csv
-#import pandas as pd
 import math
 from mido import MidiFile, MetaMessage
 import struct
@@ -143,25 +142,27 @@ def ENCODE_VLQ(value): # VLQ-Kodierung (wenn größer als 80 Zeugs) für den F0-
 
 MAX_VOICES = 7   # in case more are possible, change this
 free_voices = list(range(1, MAX_VOICES + 1))
-note_to_voice = {}
-voice_to_note = {}
+note_active = defaultdict(list)   # note -> [voice1, voice2, …]
 
-def assign_voice(note, ChannelNum):
-    if note in note_to_voice:
-        return note_to_voice[note]
+def assign_voice(note, channel_num):
+    #immer eine FRISCHE Voice nehmen
     if not free_voices:
-        raise RuntimeError(" --- Error! Channel " + str(ChannelNum) + " has more than 7 overlapping notes! ---")
-    voice = free_voices.pop(0)
-    note_to_voice[note] = voice
-    voice_to_note[voice] = note
+        raise RuntimeError(
+            f"--- Error! Channel {channel_num} hat mehr als {MAX_VOICES} "
+            "gleichzeitig klingende Stimmen! ---"
+        )
+    voice = free_voices.pop(0)        #niedrigste freie ID
+    note_active[note].append(voice)   #mehrere Voices pro (GLEICHE!) Note möglich (genau wie Donald Duck N64!)
     return voice
 
 def release_voice(note):
-    voice = note_to_voice.pop(note, None)
-    if voice:
-        voice_to_note.pop(voice, None)
-        free_voices.insert(0, voice)  #reuse lowest first
-    return voice
+    if note_active[note]:             # noch mindestens eine Voice offen
+        voice = note_active[note].pop(0)   # älteste zuerst beenden
+        free_voices.append(voice)
+        free_voices.sort()            # kleinste IDs zuerst wiederverwenden
+        return voice
+    return None
+
 
 ## VOICE MECHANIC END ## ---------
 
@@ -210,10 +211,13 @@ def NOTES_to_BMSDATA(notedata, AllTicks, ppqn_original=120, ppqn_target=120): #N
                     ])
 
                 elif msg.type in ['note_off', 'note_on'] and msg.velocity == 0:
-                    if msg.note in note_to_voice:
-                        voice = release_voice(msg.note)
-                        if voice is not None:
-                            output += bytes([0x80 | (voice & 0x0F)])
+                    # if msg.note in note_to_voice:
+                        # voice = release_voice(msg.note)
+                        # if voice is not None:
+                            # output += bytes([0x80 | (voice & 0x0F)])
+                    voice = release_voice(msg.note)
+                    if voice is not None:
+                        output += bytes([0x80 | (voice & 0x0F)])   # 81–87
 
                 ## MIDI CC ##
                 elif msg.type == 'control_change':
@@ -317,7 +321,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
     melodie_octave_range = range(72, 84)  # C5–H5   MELODIE NOTEN
     loop_start_markers = []
     loop_end_markers = []
-
+    Beat_Start = []
     #mid = MidiFile(midifile)
     #ppqn_scale = 1
     
@@ -400,7 +404,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
                     
             if msg.type in ['note_off', 'note_on'] and msg.velocity == 0:
                 last_tick = max(0, time_acc) #Um letzten Tick des Tracks zu kriegen (für Akkordstuff und falls kein Loop)
-            ##NEU:
+            ##Marker:
             if msg.type == 'marker':
                 if msg.text == 'LoopStart':
                     loop_start_markers.append(time_acc)
@@ -408,6 +412,11 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
                 elif msg.text == 'LoopEnd':
                     loop_end_markers.append(time_acc)
                     LoopingErrorCounter2 = LoopingErrorCounter2 +1
+                    
+                # elif msg.text == 'BEAT_START':
+                    # Beat_Start.append(time_acc)
+                    # print("BEATstart woanders")
+                    
     if not trigger_events:
         sys.exit("❌ ERROR: No bass note found!")
         return
@@ -1090,10 +1099,13 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, ppqn_target=120):
                     ])
 
                 elif msg.type in ['note_off', 'note_on'] and msg.velocity == 0:
-                    if msg.note in note_to_voice:
-                        voice = release_voice(msg.note)
-                        if voice is not None:
-                            output += bytes([0x80 | (voice & 0x0F)])  # 81-87 (1-7), Bis zu 7 Voices möglich
+                    # if msg.note in note_to_voice:
+                        # voice = release_voice(msg.note)
+                        # if voice is not None:
+                            # output += bytes([0x80 | (voice & 0x0F)])  # 81-87 (1-7), Bis zu 7 Voices möglich
+                    voice = release_voice(msg.note)
+                    if voice is not None:
+                        output += bytes([0x80 | (voice & 0x0F)])   # 81–87
 
                 
                 ## Midievents ##
@@ -1565,9 +1577,9 @@ if __name__ == "__main__":
     Output_BMS = sys.argv[2]
     LinearToLogarithmic = sys.argv[3]
     
-    print("--- 🎵 Midi to BMS v.0.9.8 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.8.5 🎶 ---") # to check Version
     print()
-    START(Input_MIDI, Output_BMS, LinearToLogarithmic)#TimingChannel=None, LinearToLogarithmic=False, PPQNtargetValue=120)
+    START(Input_MIDI, Output_BMS, LinearToLogarithmic)
     print()
     print("✅ Done!")
     print()
