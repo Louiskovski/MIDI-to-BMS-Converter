@@ -148,8 +148,8 @@ def assign_voice(note, channel_num):
     #immer eine FRISCHE Voice nehmen
     if not free_voices:
         raise RuntimeError(
-            f"--- Error! Channel {channel_num} hat mehr als {MAX_VOICES} "
-            "gleichzeitig klingende Stimmen! ---"
+            f"--- Error! Channel {channel_num} has more than {MAX_VOICES} "
+            "notes sounding at the same time! ---"
         )
     voice = free_voices.pop(0)        #niedrigste freie ID
     note_active[note].append(voice)   #mehrere Voices pro (GLEICHE!) Note möglich (genau wie Donald Duck N64!)
