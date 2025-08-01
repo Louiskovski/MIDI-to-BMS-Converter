@@ -1,4 +1,4 @@
-# MIDI-to-BMS-Converter
+# 🎵 MIDI-to-BMS-Converter 🎵
 Converts Midis to *Super Mario Galaxy 1 &amp; 2's* BMS sequence format.
 
 Can also generate timing tracks (for beats and CIT usage) and CIT files (chord and scale for effects).
@@ -13,7 +13,7 @@ The instrument event values defined in the Midi (Program Change, Bank Select (MS
 For example, if you have mixed a Midi with the soundfont file extracted from the game, the exact same instruments will also be used in the BMS.
 Provided that your DAW/midi editor also exports them!
 
-If there are no Bank Select commands in the Midi, the game will use bank 0 as default.
+💡 If there are no Bank Select commands in the Midi, the game will use bank 0 as default.
 
 (A little tutorial on how to extract the soundfont from the game for DAW use will be coming soon.)
 ### Looping
@@ -21,7 +21,7 @@ Place markers with the names **LoopStart** and **LoopEnd** in your midi to defin
 If you want the song to be repeated in its entirety, add a marker with the name **LoopAll** in the midi.
 If none of these markers are in the midi, the song will simply end.
 
-Note that if you have a **LoopAll** but also a **LoopStart** and **LoopEnd** marker in the midi, it will use the loop points instead of looping the whole song.
+❕ Note that if you have a **LoopAll** but also a **LoopStart** and **LoopEnd** marker in the midi, it will use the loop points instead of looping the whole song.
 
 ### Midi Controllers
 Currently, the following midi controllers will be imported to the BMS:
@@ -46,12 +46,14 @@ Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your mi
 ### PPQN
 Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by default in the exported BMS, which is the standard of the Galaxy games.
 
-### Timing and CIT Data Generation
+### 🎹 Timing and CIT Data Generation
 [Example Midis can be found here](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp)
 
 Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows.
 
-Time signature changes, e.g. from 3/4 to 4/4 in the middle of a song, or an intro with a different time signature than the rest of the song (like Good Egg Galaxy's theme) are not currently supported.
+💡 If you want to use this with a streamed song (AST), you can load the song into your DAW to define the chords. Make sure you use the same BPM as the streamed song.
+
+❗️Time signature changes, e.g. from 3/4 to 4/4 in the middle of a song, or an intro with a different time signature than the rest of the song (like Good Egg Galaxy's theme) are not currently supported.
 
 #### Timing/Beat
 To enable timing and chord generation for your midi, add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
@@ -61,7 +63,7 @@ Chords and scale note pairs are defined in the Midi as follows. These notes must
 
 ![screenshot](CIT_Explain1.png)
 
-All chord sections must be clearly separated from each other. Even if two consecutive chords have the same notes, they must still appear twice, as shown in the image here:
+❗️All chord sections must be clearly separated from each other. Even if two consecutive chords have the same notes, they must still appear twice, as shown in the image here:
 
 ![screenshot](CIT_Explain3.png)
 
@@ -70,7 +72,7 @@ Defines the harmonic basis for the chord. This is necessary for each chord set.
 
 Is defined in *octave range 5 (C4 (midi 48) - B4 (midi 59))*. Only one is allowed per chord and scale set.
 
-The length of the bass note is also defined as the range in which the chord and scale notes are taken into account. As shown in the picture:
+❗️The length of the bass note is also defined as the range in which the chord and scale notes are taken into account. As shown in the picture:
 
 ![screenshot](CIT_Explain2.png)
 
@@ -86,12 +88,12 @@ These notes are defined in ascending order in the midi.
 Are specified in *octave range 7 (C6 (midi 72) - B6 (midi 83))*.
 
 #### Converting
-When converting a prepared Midi, additional information, including the notes, is displayed.
+When converting a prepared Midi, additional information, including the notes, is displayed. You can scroll through it to look for possible mistakes, e.g. if a bass note accidentally protrudes into the wrong chord.
 
-At the end you will get a *IntoBeat* and *LoopBeat* value, which you need to enter in the MultiBgmInfo for your song, if it is meant for combination with streamed AST (Multi-BGM). If it is an BMS-only song, you can ignore these values.
+💡 At the end you will get a *IntoBeat* and *LoopBeat* value, which you need to enter in the MultiBgmInfo for your song, if it is meant for combination with streamed AST (Multi-BGM). If it is an BMS-only song, you can ignore these values.
 
 #### Additional Notes
-If you want to use your timing and chord data for a streamed song, the song must be in AST format at 32000 Hz.
+* If you want to use your timing and chord data for a streamed song, the song must be in AST format at 32000 Hz.
 
 
 ## Preparation
