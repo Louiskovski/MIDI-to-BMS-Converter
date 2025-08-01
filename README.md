@@ -49,7 +49,10 @@ Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by def
 ### Timing and CIT Data Generation
 [Example Midis can be found here](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp)
 
-Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows:
+Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows.
+
+Time signature changes, e.g. from 3/4 to 4/4 in the middle of a song, or an intro with a different time signature than the rest of the song (like Good Egg Galaxy's theme) are not currently supported.
+
 #### Timing/Beat
 To enable timing and chord generation for your midi, add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
 
@@ -57,12 +60,18 @@ To enable timing and chord generation for your midi, add a marker called **BEAT_
 Chords and scale note pairs are defined in the Midi as follows. These notes must be on a track for channel 0. Any other channel is not used for this.
 
 ![screenshot](CIT_Explain1.png)
+
+All chord sections must be clearly separated from each other. Even if two consecutive chords have the same notes, they must still appear twice, as shown in the image here:
+
+![screenshot](CIT_Explain3.png)
+
 ##### Bass Note
 Defines the harmonic basis for the chord. This is necessary for each chord set.
 
 Is defined in *octave range 5 (C4 (midi 48) - B4 (midi 59))*. Only one is allowed per chord and scale set.
 
 The length of the bass note is also defined as the range in which the chord and scale notes are taken into account. As shown in the picture:
+
 ![screenshot](CIT_Explain2.png)
 
 ##### Chord Notes
@@ -95,7 +104,9 @@ To install Mido, open command line and enter ***pip install mido***
 The Bat files with "compressed" requires path to a compress tool, such as yaz0enc.exe from [RARC Tools](https://kuribo64.net/get.php?id=5c98RKoV3uJdGBin). Open the Bat with a text editor and replace "C:\Tools\yaz0enc.exe" with path to the exe.
 
 ## Plans for Updates
+* Time signature changes support for Beat and CIT Generation
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
+* Compression
 
 ## Special Thanks
 * **SY24, Super Hackio and Xayrga** for documenting BMS format
