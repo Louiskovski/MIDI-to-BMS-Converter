@@ -51,7 +51,7 @@ Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by def
 
 Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows.
 
-💡 If you want to use this with a streamed song (AST), you can load the song into your DAW to define the chords. Make sure you use the same BPM as the streamed song.
+💡 If you want to use this with a streamed song (AST), you can load the song into your DAW to define the chords. Make sure you use the same BPM as the streamed song. BPM changes during the song are also supported, but they need to be the same as the streamed song!
 
 ❗️Time signature changes, e.g. from 3/4 to 4/4 in the middle of a song, or an intro with a different time signature than the rest of the song (like Good Egg Galaxy's theme) are not currently supported.
 
