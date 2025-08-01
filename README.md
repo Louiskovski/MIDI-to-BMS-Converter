@@ -94,7 +94,7 @@ When converting a prepared Midi, additional information, including the notes, is
 
 #### Additional Notes
 * If you want to use your timing and chord data for a streamed song, the song must be in AST format at 32000 Hz.
-
+* The timing track is automatically ‘compressed’ (using subcalls), which saves a lot of storage space without losing any data.
 
 ## Preparation
 You need:
@@ -108,7 +108,7 @@ The Bat files with "compressed" requires path to a compress tool, such as yaz0en
 ## Plans for Updates
 * Time signature changes support for Beat and CIT Generation
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
-* Compression
+* Compression (using subcalls)
 
 ## Special Thanks
 * **SY24, Super Hackio and Xayrga** for documenting BMS format
