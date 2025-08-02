@@ -16,6 +16,11 @@ Provided that your DAW/midi editor also exports them!
 💡 If there are no Bank Select commands in the Midi, the game will use bank 0 as default.
 
 (A little tutorial on how to extract the soundfont from the game for DAW use will be coming soon.)
+### Synthesizer Info
+The game uses a sample based synth with oscillators, [find more technical info here](https://web.archive.org/web/20241104204514/https://xayr.gay/wiki/IBNK).
+* It can play up to 7 notes simultaneously per channel.
+* The game supports ‘voice stacking’, meaning you can play simultaneous instances of the same note (with the same pitch).
+
 ### Looping
 Place markers with the names **LoopStart** and **LoopEnd** in your midi to define loop points.
 If you want the song to be repeated in its entirety, add a marker with the name **LoopAll** in the midi.
