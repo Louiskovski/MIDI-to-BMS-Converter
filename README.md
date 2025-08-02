@@ -1,4 +1,4 @@
-# 🎵 MIDI-to-BMS-Converter 🎵
+# MIDI-to-BMS-Converter
 Converts Midis to *Super Mario Galaxy 1 &amp; 2's* BMS sequence format.
 
 Can also generate timing tracks (for beats and CIT usage) and CIT files (chord and scale for effects).
@@ -10,7 +10,7 @@ Drag and drop your Midi on one of the bat files or use command line usage:
 Example: `python MIDI-to-BMS.py HappyBirthday.mid ToYou.bms True`
 ### Instruments
 The instrument event values defined in the Midi (Program Change, Bank Select (MSB and LSB)) are transferred directly to the BMS.
-For example, if you have mixed a Midi with the soundfont file extracted from the game, the exact same instruments will also be used in the BMS.
+For example, if you have mixed a Midi with the soundfont file extracted from the game, the same instruments will also be used in the BMS.
 Provided that your DAW/midi editor also exports them!
 
 💡 If there are no Bank Select commands in the Midi, the game will use bank 0 as default.
@@ -22,6 +22,8 @@ If you want the song to be repeated in its entirety, add a marker with the name 
 If none of these markers are in the midi, the song will simply end.
 
 ❕ Note that if you have a **LoopAll** but also a **LoopStart** and **LoopEnd** marker in the midi, it will use the loop points instead of looping the whole song.
+
+❕ If a note has NoteOn before the LoopEnd marker and NoteOff after it, the NoteOff will never occur. This can best be tested with a DAW with a loop function.
 
 ### Midi Controllers
 Currently, the following midi controllers will be imported to the BMS:
