@@ -114,6 +114,7 @@ And to ensure that it is mapped correctly, these 3 markers are added to each MID
 - BankEnlarge_MIDIBank102=BMSBank52
 - BankEnlarge_MIDIBank103=BMSBank53
 
+[Example Midi](https://kuribo64.net/get.php?id=ILKzVVdTy1yBHYZF)
 
 ### 🎹 Timing and CIT Data Generation
 [Example Midis can be found here](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp)
