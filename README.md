@@ -10,7 +10,7 @@ Drag and drop your Midi on one of the bat files or use command line usage:
 - **LogarithmicConvert?** *True* if you want to convert from linear to logarithmic volume ratios (rare situation), otherwise *False* 
 - **ForTwilightPrincess?** If *True* it adds an F9 command ("JASSeqParser::cmdSyncCPU") to each channel which is required for *Twilight Princess*, otherwise *False*
 
-Example: `python MIDI-to-BMS.py HappyBirthday.mid ToYou.bms True False
+Example: python MIDI-to-BMS.py HappyBirthday.mid ToYou.bms True False
 ### Instruments
 The instrument event values defined in the Midi (Program Change, Bank Select (MSB and LSB)) are transferred directly to the BMS.
 
