@@ -1,19 +1,28 @@
 # MIDI-to-BMS-Converter
-Converts Midis to *Super Mario Galaxy 1 &amp; 2's* BMS sequence format.
+Converts Midis to JAudio2 BMS sequence format, used by Wii and GameCube games like *Super Mario Galaxy 1 &amp; 2's* and *The Legend of Zelda: Twilight Princess*.
 
-Can also generate timing tracks (for beats and CIT usage) and CIT files (chord and scale for effects).
+Can also generate Mario Galaxy timing tracks (for beats and CIT usage) and CIT files (chord and scale for effects).
 
 ## Usage
 Drag and drop your Midi on one of the bat files or use command line usage:
-`python MIDI-to-BMS.py Input.mid Output.bms LogarithmicConvert?`
+`python MIDI-to-BMS.py Input.mid Output.bms LogarithmicConvert? ForTwilightPrincess?`
 
-Example: `python MIDI-to-BMS.py HappyBirthday.mid ToYou.bms True`
+- **LogarithmicConvert?** *True* if you want to convert from linear to logarithmic volume ratios (rare situation), otherwise *False* 
+- **ForTwilightPrincess?** If *True* it adds an F9 command ("JASSeqParser::cmdSyncCPU") to each channel which is required for *Twilight Princess*, otherwise *False*
+
+Example: `python MIDI-to-BMS.py HappyBirthday.mid ToYou.bms True False
 ### Instruments
 The instrument event values defined in the Midi (Program Change, Bank Select (MSB and LSB)) are transferred directly to the BMS.
-For example, if you have mixed a Midi with the soundfont file extracted from the game, the same instruments will also be used in the BMS.
+
+So if you have mixed a Midi with the soundfont file extracted from the game, the same instruments will also be used in the BMS.
 Provided that your DAW/midi editor also exports them!
 
 💡 If there are no Bank Select commands in the Midi, the game will use bank 0 as default.
+
+#### Bank Enlarge Function
+Unlike MIDI, the BMS format can process program change values up to 255, which is used in some cases like The Legend of Zelda: Twilight Princess.
+
+In such a case, you can use the **Bank Enlarge Function** described below.
 
 (A little tutorial on how to extract the soundfont from the game for DAW use will be coming soon.)
 ### Synthesizer Info
@@ -52,6 +61,59 @@ Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your mi
 
 ### PPQN
 Currently, the PPQN (the "resolution" of a Midi) will be converted to 120 by default in the exported BMS, which is the standard of the Galaxy games.
+
+### Bank Enlarge Function (Program Change > 127)
+
+Unlike MIDI, the BMS format can process program change values up to 255.
+Some games, such as The Legend of Zelda: Twilight Princess, actively use this extended range.
+
+However, since MIDI only supports Program Change 0–127 per bank, instruments with higher program numbers must be split up.
+
+#### Preparing your soundfont/instrument collection
+
+Instruments with program numbers above 127 must be moved to an additional, free bank in your soundfont or similar.
+The new bank will then contain only the “overflow” instruments, with the program number being minus 128 in each case:
+
+|Original BMS Program|New SF2 Program|
+|-|-|
+|128|0|
+|129|1|
+|134|6|
+
+#### Setting markers in the MIDI
+
+A marker is used in the MIDI so that the tool knows which MIDI bank should be expanded to which BMS bank.
+
+**Marker format:** "BankEnlarge_MIDIBankX=BMSBankY”
+- X = The new MIDI bank containing the outsourced instruments (0–127)
+- Y = The original bank in the game (BMS bank) using programs 0–255
+
+Multiple markers are allowed if multiple banks are to be expanded.
+
+
+The tool automatically recognizes the defined bank pairs and maps MIDI program change 0–127 to BMS program change 128–255 and also sets the correct bank and instrument assignment in BMS format
+
+Everything remains compatible for MIDI, the expansion takes place entirely during conversion.
+
+##### Example
+In Twilight Princess, banks 11, 52, and 53 have more than 127 patches, so the banks are split into two banks each:
+
+|Original BMS|New SF2|
+|-|-|
+|BMS Bank 11 Part 1 [Program   0 - 127]|SF2 Bank 11|
+|BMS Bank 11 Part 2 [Program 128 - 239]|SF2 Bank 101|
+|-|-|
+|BMS Bank 52 Part 1 [Program   0 - 127]|SF2 Bank 52|
+|BMS Bank 52 Part 2 [Program 128 - 160]|SF2 Bank 102|
+|-|-|
+|BMS Bank 53 Part 1 [Program   0 - 127]|SF2 Bank 53|
+|BMS Bank 53 Part 2 [Program 128 - 134]|SF2 Bank 103|
+
+And to ensure that it is mapped correctly, these 3 markers are added to each MIDI file to be converted:
+- BankEnlarge_MIDIBank101=BMSBank11
+- BankEnlarge_MIDIBank102=BMSBank52
+- BankEnlarge_MIDIBank103=BMSBank53
+
 
 ### 🎹 Timing and CIT Data Generation
 [Example Midis can be found here](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp)
