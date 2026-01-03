@@ -364,7 +364,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
     TriggernoteCounter_forLoop = -1
 
-    DEBUG = True
+    DEBUG = False
 
     print("------------------------------------")
     print()
@@ -1654,7 +1654,7 @@ if __name__ == "__main__":
     except:
         Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.9 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9.1 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
@@ -1662,3 +1662,4 @@ if __name__ == "__main__":
     print()
     print()
     print()
+
