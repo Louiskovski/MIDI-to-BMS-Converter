@@ -1,5 +1,6 @@
 @echo off
 
-python %~dp0MIDI-to-BMS.py "%~1" "%~1.bms" True
+python %~dp0MIDI-to-BMS.py "%~1" "%~1.bms" True False
 
 pause
+
