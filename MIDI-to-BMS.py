@@ -7,7 +7,7 @@ from mido import MidiFile, MetaMessage
 import struct
 from collections import defaultdict
 from mido import Message
-
+import re
 
 def Generate_TimingNotes(Takt=0):
     sequence = []
@@ -44,6 +44,13 @@ def Generate_TimingNotes(Takt=0):
         sequence += add_notes(0, note_Eb2, 12, 30, 30, 22)
         sequence += add_notes(0, note_Db2, 24, 13, 15, 34)
     
+    if Takt == 2: #(5/4 Takt) #WIP
+        sequence += add_notes(0, note_C2, 4, 120, 120, 13)
+        sequence += add_notes(0, note_Fs2, 8, 60, 60, 16)
+        sequence += add_notes(0, note_Eb2, 16, 30, 30, 22)
+        sequence += add_notes(0, note_Db2, 32, 13, 15, 34)
+    
+    
     
     # Nach Zeit sortieren, damit sie korrekt verarbeitet werden können
     sequence.sort(key=lambda e: e[0])
@@ -63,7 +70,26 @@ def get_note_byte(note_number):
     #print("test")
     return note_number % 12
 
+def Parse_BankEnlarge_Markers(filename):
+    mid = mido.MidiFile(filename)
 
+    bank_enlarge_map = {}
+
+    pattern = re.compile(
+        r"^BankEnlarge_MIDIBank(\d+)=BMSBank(\d+)$"
+    )
+
+    for track in mid.tracks:
+        for msg in track:
+            if msg.type == 'marker':
+                m = pattern.match(msg.text)
+                if m:
+                    midi_bank = int(m.group(1))
+                    bms_bank  = int(m.group(2))
+
+                    bank_enlarge_map[midi_bank] = bms_bank
+
+    return bank_enlarge_map
 
 def LogarithmicCalculate(value): # Recalculate linear volume values to logarithmic ones
     if value == 0:
@@ -338,7 +364,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
     TriggernoteCounter_forLoop = -1
 
-    DEBUG = False
+    DEBUG = True
 
     print("------------------------------------")
     print()
@@ -1018,7 +1044,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
 
 
-def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, ppqn_target=120):
+def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, BankEnlargeMap, ppqn_target=120):
     mid = mido.MidiFile(midifile)
     ppqn_original = mid.ticks_per_beat
     ppqn_scale = ppqn_target / ppqn_original
@@ -1143,16 +1169,49 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, ppqn_target=120):
                         # Tremollo Rate (if strenght is used but not this event, it will be auto set to 50%)
                         elif msg.control == 93:     
                             output += bytes([0xD8, 0x72, 0x00, msg.value & 0xFF])
+                            
+                        # -- BMS Specific Events --
+                        
+                        #Fade-In for CC7, 10, 91 or pitchwheel [OpCode BA]
 
                 
                 # Patch and Bank Stuff #
                 elif msg.type == 'program_change':
+                    
+                    TheProgram = msg.program
+                    TheBank = last_bank
+                    ## Program Change Enlarge ##
+                
                     if last_bank is not None:
-                        #output += bytes([0xE1, last_bank & 0xFF, msg.program & 0xFF]) #E1 command (combines patch and bank select)
-                        output += bytes([0xE2, last_bank & 0xFF, 0xE3, msg.program & 0xFF]) #Lass E2 und E3 nehmen, da E1 von vielen Tools wie JAISeqX Synthesizer nicht unterstützt wird.
+                    
+                        ## Program Change Enlarge ##
+                        if last_bank in BankEnlargeMap:
+                            TheBank = BankEnlargeMap[last_bank]
+                            TheProgram += 128
+                            CurrentBankIsPart2Bank = True
+                            
+                            print()
+                            print("🔃 Bank & Program Change Enlarge 🔃")
+                            print()
+                            print("Channel " + str(target_channel))
+                            print(f"Midi Bank     {last_bank:3d}  ➡️  BMS Bank     {TheBank:3d}")
+                            print(f"Midi Program  {msg.program:3d}  ➡️  BMS Program  {TheProgram:3d}")
+                            print()
+                            
+                        else:
+                            CurrentBankIsPart2Bank = False
+                            
+                    
+                    
+                        #output += bytes([0xE1, TheBank & 0xFF, TheProgram & 0xFF]) #E1 command (combines patch and bank select)
+                        output += bytes([0xE2, TheBank & 0xFF, 0xE3, TheProgram & 0xFF]) #Lass E2 und E3 nehmen, da E1 von vielen Tools wie JAISeqX Synthesizer nicht unterstützt wird.
                         last_bank = None
                     else:
-                        output += bytes([0xE3, msg.program & 0xFF]) # E3 command: Only for patch change 
+                    
+                        if CurrentBankIsPart2Bank == True:
+                            TheProgram += 128
+
+                        output += bytes([0xE3, TheProgram & 0xFF]) # E3 command: Only for patch change 
             
             
             
@@ -1176,8 +1235,11 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, ppqn_target=120):
 
 
 ## HAUPTACTION ##
-def START(midifile, Output_BMS, LinearToLogarithmic=False, PPQNtargetValue=120):
+def START(midifile, Output_BMS, LinearToLogarithmic=False, Twilight=False, PPQNtargetValue=120):
     with open(Output_BMS, "w+b") as f:
+        
+        if Twilight == True:
+            print("Twilight Princess Mode")
         
         # Infos sammeln
         mid = mido.MidiFile(midifile)
@@ -1228,7 +1290,11 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, PPQNtargetValue=120):
             else:
                 LoopAll = True
                 print("LOOP: Entire Song")
-                
+        
+        ## ---Bank Enlarge Check--- ##
+        BankEnlargeMap = Parse_BankEnlarge_Markers(midifile)
+        
+        
         ## ---LinearToLogarithmic Check--- ##
         if LinearToLogarithmic == True:
             print("Volumes will be converted from linear to logarithmic.")
@@ -1425,10 +1491,12 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, PPQNtargetValue=120):
             if chID == 15:
                 ChannelpointerCH15 = f.tell()
             
+            
+            
             ### --- Schreibe Noten und Events in Datei ---
             
-            ## Timing and Chord Channel ##
-            if TimingChannel == True and chID == 0:
+            ## Timing and Chord Channel (Mario Galaxy) ##
+            if TimingChannel == True and chID == 0 and Twilight == False:
                 print()
                 print("Timing Channel included. ")# + str(chID))
                 output, CIToutput, C3Taktblock = MIDICHANNEL_to_TIMINGandCHORD(midifile, chID, Takt, Loop)
@@ -1445,7 +1513,11 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, PPQNtargetValue=120):
                     f.write(C3Taktblock)
                     f.write(b"\xFF")
             else:
-                output = MIDICHANNEL_to_BMSDATA(midifile, chID, Loop)
+                if Twilight == True:
+                    f.write(b"\xF9\x00\x00") ##Twilight Princess Zusatz
+                    
+                output = MIDICHANNEL_to_BMSDATA(midifile, chID, Loop, BankEnlargeMap)
+                
             f.write(output)
             
             ## ---- LOOP ---- ##
@@ -1575,11 +1647,16 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, PPQNtargetValue=120):
 if __name__ == "__main__":
     Input_MIDI = sys.argv[1]
     Output_BMS = sys.argv[2]
-    LinearToLogarithmic = sys.argv[3]
+    LinearToLogarithmic = sys.argv[3] #True or False
+    try:
+        if "true" == sys.argv[4] or "True" == sys.argv[4]:
+            Twilight = True
+    except:
+        Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.8.5 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9 🎶 ---") # to check Version
     print()
-    START(Input_MIDI, Output_BMS, LinearToLogarithmic)
+    START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
     print("✅ Done!")
     print()
