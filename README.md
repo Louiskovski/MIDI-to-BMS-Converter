@@ -39,7 +39,7 @@ If none of these markers are in the midi, the song will simply end.
 
 ❕ If a note has NoteOn before the LoopEnd marker and NoteOff after it, the NoteOff will never occur. This can best be tested with a DAW with a loop function.
 
-### Midi Controllers
+### Midi Controllers & Other Events
 Currently, the following midi controllers will be imported to the BMS:
 
 #### Basic
@@ -54,7 +54,14 @@ Currently, the following midi controllers will be imported to the BMS:
 - **CC 01** Vibrato (Wet/Dry)
 - **CC 02** Vibrato (Rate) - If CC 1 is used but not this one, the game will use a default value of 50%
 
-Pitch Wheel and BPM changes during the song are also supported.
+#### Pitch Wheel & Sensitivity
+Pitchwheel is also supported.
+Additionally it can be used in combination with RPN Pitch Bend Sensitivity.
+
+However, only an RPN value of up to 6579 is supported. It is recommended to use only an RPN value of 5000 or less, as higher values will lead to incorrect results.
+
+#### Misc
+BPM changes during the song are also supported.
 
 ### Logarithmic
 Super Mario Galaxy's Synthesizer uses logarithmic volume relation. So if your midi was created with a Synthesizer with linear volume ratios, you can enter "True" in place of ***LogarithmicConvert?*** in command line (or use the bat file per drag and drop) to have the BMS converted logarithmic values.
