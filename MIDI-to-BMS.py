@@ -1052,6 +1052,10 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, BankEnlargeMap, ppqn_
     events = []
     abs_time = 0
 
+    #Pitch Wheel Default (if there is no RPN event) 
+    pitch_range_semitones = 5 #Default, if RPN is 0 or not present. This is the root of BMS
+    pitch_range_cents = 0
+
                     
     for track in mid.tracks:
         time_acc_real = 0.0 # float für exakte ppqn umrechnung
@@ -1170,10 +1174,24 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, BankEnlargeMap, ppqn_
                         elif msg.control == 93:     
                             output += bytes([0xD8, 0x72, 0x00, msg.value & 0xFF])
                             
+                        
+                        # Pitchbend RPN
+                        elif msg.control == 101:rpn_msb = msg.value
+                        elif msg.control == 100: rpn_lsb = msg.value
+                        elif rpn_msb == 0 and rpn_lsb == 0:
+                            
+                            if msg.control == 6:
+                                pitch_range_semitones = msg.value * 2.5 #Engine specific Hack!! Might not be 100 % equal, but from hearing it sounds correct
+                            elif msg.control == 38:
+                                pitch_range_cents = msg.value
+                        
+                        
+                        
+                        
                         # -- BMS Specific Events --
                         
                         #Fade-In for CC7, 10, 91 or pitchwheel [OpCode BA]
-
+#5000
                 
                 # Patch and Bank Stuff #
                 elif msg.type == 'program_change':
@@ -1214,11 +1232,35 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, BankEnlargeMap, ppqn_
                         output += bytes([0xE3, TheProgram & 0xFF]) # E3 command: Only for patch change 
             
             
-            
+                ### Pitchwheel ###
+                # BMS Pitchwheel event is a combination of RPN
+                
+                
+                
+                # # store RPN values
+                # elif msg.type == 'control_change':
+                    # if msg.control == 101:
+                        # rpn_msb = msg.value
+                    # elif msg.control == 100:
+                        # rpn_lsb = msg.value
+                        
+                    # elif rpn_msb == 0 and rpn_lsb == 0:
+                        # if msg.control == 6: #MSB
+                            # pitch_range_semitones = msg.value
+                        # elif msg.control == 38: #LSB
+                            # pitch_range_cents = msg.value
+
+                # Get pitchwheel value and calculate with RPN value
                 elif msg.type == 'pitchwheel':
-                    # in MIDI: −8192 - +8191
-                    #durch 8 teilen ( >> 3 ) ->  −1024 - +1023  (±0x0400)
-                    pitch_value = msg.pitch >> 3                     #int
+                    
+                    # Use stored RPN Values to get correct Pitch value
+                    total_range = pitch_range_semitones + (pitch_range_cents / 100.0)
+
+                    normalized = msg.pitch / 8192.0    # -1 bis 1
+                    semitones = normalized * total_range
+
+                    pitch_value = int(semitones * 256)
+
 
                     # in 2 bytes:
                     pitch_bytes = pitch_value.to_bytes(
@@ -1654,7 +1696,7 @@ if __name__ == "__main__":
     except:
         Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.9.1 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9.4 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
@@ -1662,4 +1704,3 @@ if __name__ == "__main__":
     print()
     print()
     print()
-
