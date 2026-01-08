@@ -1055,6 +1055,10 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, BankEnlargeMap, ppqn_
     #Pitch Wheel Default (if there is no RPN event) 
     pitch_range_semitones = 5 #Default, if RPN is 0 or not present. This is the root of BMS
     pitch_range_cents = 0
+    
+    #RPN default state (VERY IMPORTANT)
+    rpn_msb = 127
+    rpn_lsb = 127
 
                     
     for track in mid.tracks:
@@ -1176,8 +1180,10 @@ def MIDICHANNEL_to_BMSDATA(midifile, target_channel, Loop, BankEnlargeMap, ppqn_
                             
                         
                         # Pitchbend RPN
-                        elif msg.control == 101:rpn_msb = msg.value
-                        elif msg.control == 100: rpn_lsb = msg.value
+                        elif msg.control == 101:
+                            rpn_msb = msg.value
+                        elif msg.control == 100:
+                            rpn_lsb = msg.value
                         elif rpn_msb == 0 and rpn_lsb == 0:
                             
                             if msg.control == 6:
@@ -1696,7 +1702,7 @@ if __name__ == "__main__":
     except:
         Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.9.4 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9.4.1 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
