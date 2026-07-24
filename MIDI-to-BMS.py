@@ -36,9 +36,9 @@ def Generate_TimingNotes(Takt=0):
         sequence += add_notes(0, note_C2, 4, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 8, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 16, 30, 30, 22)
-        #sequence += add_notes(0, note_Db2, 32, 13, 15, 34)
+        sequence += add_notes(0, note_Db2, 32, 13, 15, 34)
         #sequence += add_notes(0, note_Db2, 16, 13, 30, 34) #wenn rate halb sein soll (halb schnell) Broken??
-        sequence += add_notes(0, note_Db2, 24, 13, 20, 34) #wenn rate 3/4 sein soll
+        #sequence += add_notes(0, note_Db2, 24, 13, 20, 34) #wenn rate 3/4 sein soll
         #die count und spacing miteinander malgenommen muss immer 480 ergeben!
         
     if Takt == 1:  #(3/4 Takt)
