@@ -26,7 +26,7 @@ def Generate_TimingNotes(Takt=0):
     note_C2 = 24        # 1 Takt Note
     note_Fs2 = 30       # Halbe Takt Note
     note_Eb2 = 27       # Vierteltakt Note
-    note_Db2 = 25       # Achteltaktnoten, mit Abstand. (Positionen zum Abspielen der Melodien ??)
+    note_Db2 = 25       # Achteltaktnoten, mit Abstand. (Positionen zum Abspielen der Melodien)
 
 
     #Takt = 1 #TEST
@@ -36,8 +36,11 @@ def Generate_TimingNotes(Takt=0):
         sequence += add_notes(0, note_C2, 4, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 8, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 16, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 32, 13, 15, 34)
-
+        #sequence += add_notes(0, note_Db2, 32, 13, 15, 34)
+        #sequence += add_notes(0, note_Db2, 16, 13, 30, 34) #wenn rate halb sein soll (halb schnell) Broken??
+        sequence += add_notes(0, note_Db2, 24, 13, 20, 34) #wenn rate 3/4 sein soll
+        #die count und spacing miteinander malgenommen muss immer 480 ergeben!
+        
     if Takt == 1:  #(3/4 Takt)
         sequence += add_notes(0, note_C2, 3, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 6, 60, 60, 16)
@@ -45,10 +48,10 @@ def Generate_TimingNotes(Takt=0):
         sequence += add_notes(0, note_Db2, 24, 13, 15, 34)
     
     if Takt == 2: #(5/4 Takt) #WIP
-        sequence += add_notes(0, note_C2, 4, 120, 120, 13)
-        sequence += add_notes(0, note_Fs2, 8, 60, 60, 16)
-        sequence += add_notes(0, note_Eb2, 16, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 32, 13, 15, 34)
+        sequence += add_notes(0, note_C2, 5, 120, 120, 13)
+        sequence += add_notes(0, note_Fs2, 10, 60, 60, 16)
+        sequence += add_notes(0, note_Eb2, 20, 30, 30, 22)
+        sequence += add_notes(0, note_Db2, 30, 13, 20, 34)
     
     
     
@@ -381,6 +384,10 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
         print("   Beat: Three quarter beat")
         bereich_groesse=360
 
+    if Takt == 2:
+        print("   Beat: Five quarter beat")
+        bereich_groesse=600
+        
     print()
 
 
@@ -428,8 +435,15 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
                 elif msg.note in melodie_octave_range:
                     melodie_octave_events.append((time_acc, msg.note))
                     
-            if msg.type in ['note_off', 'note_on'] and msg.velocity == 0:
-                last_tick = max(0, time_acc) #Um letzten Tick des Tracks zu kriegen (für Akkordstuff und falls kein Loop)
+            # if msg.type in ['note_off', 'note_on'] and msg.velocity == 0:
+                # last_tick = max(0, time_acc) #Um letzten Tick des Tracks zu kriegen (für Akkordstuff und falls kein Loop) #BROKEN!!!
+            # if msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
+                # last_tick = max(0, time_acc)  
+            if msg.type == 'note_off':          #Um letzten Tick des Tracks zu kriegen (für Akkordstuff und falls kein Loop) FIXED!
+                last_tick = max(0, time_acc)
+            elif msg.type == 'note_on' and msg.velocity == 0:
+                last_tick = max(0, time_acc)
+                
             ##Marker:
             if msg.type == 'marker':
                 if msg.text == 'LoopStart':
@@ -843,7 +857,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
             
             ## Loop End in Taktdings einfügen:
             TaktblockMitZusatz = Generate_TimingNotes(Takt)#Taktblock
-            TaktblockMitZusatz.append((LoopEndTICK, Message('control_change', control=3, value=TriggernoteCounter_forLoop))) # Loop End in Taktblock einfügen
+            TaktblockMitZusatz.append((LoopEndTICK, Message('control_change', control=3, value=1))) # Loop End in Taktblock einfügen
             output += NOTES_to_BMSDATA(TaktblockMitZusatz, bereich_groesse)
             
             
@@ -1358,7 +1372,12 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, Twilight=False, PPQNt
                 TimingChannel = True
                 Takt = 1
             else:
-                TimingChannel = False
+                TaktMarker = Find_Marker_Position(midifile, "BEAT_5/4")
+                if TaktMarker is not None:
+                    TimingChannel = True
+                    Takt = 2
+                else:
+                    TimingChannel = False
         
         ## ---Global Midievents ("Tempotrack")--- ##
         output = GLOBALMIDIEVENTS_to_BMSDATA(midifile, AllTicks, Loop)
@@ -1702,7 +1721,7 @@ if __name__ == "__main__":
     except:
         Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.9.4.1 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9.4.2 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
