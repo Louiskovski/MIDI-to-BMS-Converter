@@ -537,30 +537,31 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
 
         if trigger_at_start:
-            #teile.append("✅ Trigger direkt am Anfang")
+            teile.append("✅ Trigger direkt am Anfang")
             Bool_Trigger_AtStart = True
         elif trigger_in_range:
-            #teile.append("✅ Trigger im Bereich")
+            teile.append("✅ Trigger im Bereich")
             Bool_Trigger_InRange = True
             
         if loopstart_at_start:
-            #teile.append("🟢 Loop Start direkt am Anfang")
+            teile.append("🟢 Loop Start direkt am Anfang")
             Bool_LOOPstart_AtStart = True
         elif loopstart_in_range:
-            #teile.append("🟢 Loop Start im Bereich")
+            teile.append("🟢 Loop Start im Bereich")
             Bool_LOOPstart_InRange = True
 
         if loopend_at_start:
-            #teile.append("🔴 Loop End direkt am Anfang")
+            teile.append("🔴 Loop End direkt am Anfang")
             Bool_LOOPend_AtStart = True
         elif loopend_in_range:
-            #teile.append("🔴 Loop End im Bereich")
+            teile.append("🔴 Loop End im Bereich")
             Bool_LOOPend_InRange = True
 
-        # if teile:
-            # print(f"{beschreibung} {' and '.join(teile)}. (tick {tick} - {next_tick - 1})")
-        # else:
-            # print(f"{beschreibung} no notes and marker. (tick {tick} - {next_tick - 1})")
+        if DEBUG == True:
+            if teile:
+                print(f"{beschreibung} {' and '.join(teile)}. (tick {tick} - {next_tick - 1})")
+            else:
+                print(f"{beschreibung} no notes and marker. (tick {tick} - {next_tick - 1})")
 
         # Debugprint: Positionen der Marker und Trigger
         for t in loop_start_markers:
@@ -741,7 +742,22 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
             TaktblockMitZusatz = Generate_TimingNotes(Takt)#Taktblock
             TaktblockMitZusatz.append((TriggerNoteTICK, Message('control_change', control=1, value=TriggerNoteE1)))
             output += NOTES_to_BMSDATA(TaktblockMitZusatz, bereich_groesse)
+
+
+        elif Bool_Trigger_InRange == True and Bool_LOOPstart_InRange == True: #FIX
+            if DEBUG == True:
+                print("TEST: Trigger im Bereich, und LoopStart im Bereich!")
+                print(LoopStartTICK)
+                print("Trigger bei Tick: " + str(TriggerNoteTICK))
+                print("Trigger Comand E1: " + str(TriggerNoteE1))
             
+            ## Taktbla mit E1 Trigger drin:
+            TaktblockMitZusatz = Generate_TimingNotes(Takt)#Taktblock
+            TaktblockMitZusatz.append((TriggerNoteTICK, Message('control_change', control=1, value=TriggerNoteE1))) #Triggernote
+            TaktblockMitZusatz.append((LoopStartTICK, Message('control_change', control=2, value=1))) #Loop
+            output += NOTES_to_BMSDATA(TaktblockMitZusatz, bereich_groesse)
+
+
         elif Bool_Trigger_AtStart == True and Bool_LOOPend_AtStart == True:
             if DEBUG == True:
                 print("TEST: Trigger und LoopEnd Am Start!")
@@ -1721,7 +1737,7 @@ if __name__ == "__main__":
     except:
         Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.9.4.2 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9.4.3 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
