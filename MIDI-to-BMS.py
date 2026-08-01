@@ -23,10 +23,10 @@ def Generate_TimingNotes(Takt=0):
         return events
 
     # MIDI Notezahlen
-    note_C2 = 24        # 1 Takt Note
-    note_Fs2 = 30       # Halbe Takt Note
-    note_Eb2 = 27       # Vierteltakt Note
-    note_Db2 = 25       # Achteltaktnoten, mit Abstand. (Positionen zum Abspielen der Melodien)
+    note_C2 = 24        # 1 Takt Note                   (Beatnoten für Beatblocks. z.B. 4 Noten in einem Taktbereich bei 4/4)
+    note_Fs2 = 30       # Halbe Takt Note               (???) doppelt so viel wie Beatnoten, aber wofür??
+    note_Eb2 = 27       # Vierteltakt Note              (???) 4mal wie beatnoten.
+    note_Db2 = 25       # Achteltaktnoten, mit Abstand. (Positionen zum Abspielen der Melodien/Jingles)
 
 
     #Takt = 1 #TEST
@@ -51,9 +51,19 @@ def Generate_TimingNotes(Takt=0):
         sequence += add_notes(0, note_C2, 5, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 10, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 20, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 30, 13, 20, 34)
+        sequence += add_notes(0, note_Db2, 40, 13, 15, 34)
     
+    if Takt == 3: #(2/4 Takt)
+        sequence += add_notes(0, note_C2, 2, 120, 120, 13)
+        sequence += add_notes(0, note_Fs2, 4, 60, 60, 16)
+        sequence += add_notes(0, note_Eb2, 8, 30, 30, 22)
+        sequence += add_notes(0, note_Db2, 16, 13, 15, 34)
     
+    if Takt == 4: #(1/4 Takt)
+        sequence += add_notes(0, note_C2, 1, 120, 120, 13)
+        sequence += add_notes(0, note_Fs2, 2, 60, 60, 16)
+        sequence += add_notes(0, note_Eb2, 4, 30, 30, 22)
+        sequence += add_notes(0, note_Db2, 8, 13, 15, 34)
     
     # Nach Zeit sortieren, damit sie korrekt verarbeitet werden können
     sequence.sort(key=lambda e: e[0])
@@ -100,6 +110,45 @@ def LogarithmicCalculate(value): # Recalculate linear volume values to logarithm
     gain = 127 / (40 * math.log10(1 + 1))  #Normalise to 127
     return max(1, min(127, int(gain * 40 * math.log10(1 + value / 127))))
 
+def GetTimeSignatureChanges(mid, ppqn_target=120):
+
+    ppqn_scale = ppqn_target / mid.ticks_per_beat
+
+    TimeSignatureEvents = []
+
+    for track in mid.tracks:
+
+        time_acc_real = 0.0
+        time_acc = 0
+
+        for msg in track:
+
+            time_acc_real += msg.time * ppqn_scale
+            time_acc = int(round(time_acc_real))
+
+            #print(msg.type, msg.time, time_acc)
+            if msg.type == "time_signature":
+
+                if msg.numerator == 4 and msg.denominator == 4:
+                    takt = 0 #4/4
+                elif msg.numerator == 3 and msg.denominator == 4:
+                    takt = 1 #3/4
+                elif msg.numerator == 5 and msg.denominator == 4:
+                    takt = 2 #5/4
+                elif msg.numerator == 2 and msg.denominator == 4:
+                    takt = 3 #2/4
+                elif msg.numerator == 1 and msg.denominator == 4:
+                    takt = 4 #1/4
+                else:
+                    continue
+
+                TimeSignatureEvents.append({
+                    "tick": time_acc,
+                    "takt": takt
+                })
+
+    TimeSignatureEvents.sort(key=lambda x: x["tick"])
+    return TimeSignatureEvents
 
 def Get_BPM(filename):
     mid = MidiFile(filename)
@@ -344,7 +393,7 @@ def note_number_to_name(note):
     """Wandelt MIDI-Notennummer in Namen wie C4, D#4 um"""
     return mido.get_note_name(note)
 
-def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=False):
+def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, LoopAtAll=False):
     trigger_range = range(48, 60)  # C3–H3          BASS NOTE
     upper_octave_range = range(60, 72)  # C4–H4     AKKORD NOTEN
     melodie_octave_range = range(72, 84)  # C5–H5   MELODIE NOTEN
@@ -366,8 +415,14 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
 
     TriggernoteCounter_forLoop = -1
+    TaktChangeCounter = 0           #Für Taktänderungen
+    
 
     DEBUG = False
+
+
+    ##TAKTÄNDERUNGEN kriegen
+    TimeSignatureEvents = GetTimeSignatureChanges(mid)
 
     print("------------------------------------")
     print()
@@ -375,23 +430,34 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
     print("--- 🎹 CHORD and 🎼 MUSICAL SCALE GENERATION (CIT) ---")
     print()
 
-    # Taktnoten generieren 
+    # Start-Taktnoten generieren 
+    
+    Takt = TimeSignatureEvents[0]['takt']
+    
     if Takt == 0:
-        print("   Beat: Fourth quarter beat")
+        print("   Beat: 4/4")
         bereich_groesse=480
     
     if Takt == 1:
-        print("   Beat: Three quarter beat")
+        print("   Beat: 3/4")
         bereich_groesse=360
 
     if Takt == 2:
-        print("   Beat: Five quarter beat")
+        print("   Beat: 5/4")
         bereich_groesse=600
+        
+    if Takt == 3:
+        print("   Beat: 2/4")
+        bereich_groesse=240
+        
+    if Takt == 4:
+        print("   Beat: 1/4")
+        bereich_groesse=120
         
     print()
 
 
-    Taktblock = Generate_TimingNotes(Takt) #Anscheinend spackt die Variable manchmal ?!
+    Taktblock = Generate_TimingNotes(Takt)
 
     BassNotes = []
     ChordNotes = []
@@ -472,7 +538,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
 
 
-
+    # ------------------
 
     # 1. Triggeranalyse pro Bereich
     #max_tick = max(t for t, _ in trigger_events) #ne sonst werden Bereiche nach letzter TriggernoteOn ignoriert!
@@ -500,8 +566,17 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
 
     TriggerNoteE1_AllCounter = -1 #Das erste fängt bei 0 an!
 
-    #print("\n--- TaktBereichsanalyse ---")
+
+
+
+    # --- Die verschiedenen Fälle sammeln
     while tick <= max_tick + bereich_groesse:
+        
+        
+        #Taktänderungszeug
+        
+        
+        
         next_tick = tick + bereich_groesse
         
         # Trigger
@@ -634,7 +709,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
         
         
         
-        ##  Kombis bei: mehrere Triggernoten im Bereich 
+        ## --- Die verschiedenen Kombis erfassen und Bytes writen ---
 
         if Bool_Trigger_Multiple == True and Bool_LOOPstart_AtStart == True:
             if DEBUG == True:
@@ -711,7 +786,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
             
             output += bytes([0x77, 0x77, 0x77, 0x01]) ## LoopStart / Adresse einfach merken
             output += bytes([0xE2, TriggerNoteE1 & 0xFF, 0xE3, TriggerNoteE1 & 0xFF]) ## E1 Trigger
-            output += bytes([0xC3, 0x77, 0x88, 0x99])## C3 CALLER ZU TAKT BLA
+            output += bytes([0xC3, 0x77, 0x77, Takt])## C3 CALLER ZU TAKT BLA
             
             
         elif Bool_Trigger_AtStart == True and Bool_LOOPstart_InRange == True:
@@ -768,7 +843,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
             #output += bytes([0xE1, TriggerNoteE1 & 0xFF, TriggerNoteE1 & 0xFF]) ## E1 Trigger ##NEE, wegen Loop
             output += bytes([0xE2, TriggernoteCounter_forLoop & 0xFF, 0xE3, TriggernoteCounter_forLoop & 0xFF]) ## E1 Trigger wegen Loop
             output += bytes([0x77, 0x77, 0x77, 0x02]) ## Loop End##########
-            output += bytes([0xC3, 0x77, 0x88, 0x99])## C3 CALLER ZU TAKT BLA
+            output += bytes([0xC3, 0x77, 0x77, Takt])## C3 CALLER ZU TAKT BLA
             
             
         elif Bool_Trigger_AtStart == True and Bool_LOOPend_InRange == True:
@@ -814,7 +889,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
             C3CallBytesAtAll = True
             
             output += bytes([0xE2, TriggerNoteE1 & 0xFF, 0xE3, TriggerNoteE1 & 0xFF]) ## E1 Trigger
-            output += bytes([0xC3, 0x77, 0x88, 0x99])## C3 CALLER ZU TAKT BLA
+            output += bytes([0xC3, 0x77, 0x77, Takt])## C3 CALLER ZU TAKT BLA
             
             
 
@@ -842,7 +917,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
             C3CallBytesAtAll = True
             
             output += bytes([0x77, 0x77, 0x77, 0x01])## LoopStart
-            output += bytes([0xC3, 0x77, 0x88, 0x99])## C3 CALLER ZU TAKT BLA
+            output += bytes([0xC3, 0x77, 0x77, Takt])## C3 CALLER ZU TAKT BLA
             
             
             
@@ -886,35 +961,69 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
                 print("TEST: Taktblock ohne alles")
                 
             C3CallBytesAtAll = True
-            output += bytes([0xC3, 0x77, 0x88, 0x99])## C3 CALLER ZU TAKT BLA
+            output += bytes([0xC3, 0x77, 0x77, Takt])## C3 CALLER ZU TAKT BLA
 
 
 
-
+        ## Bereich abgearbeitet -> jetzt zum nächsten Eintrag 
         tick = next_tick
         bereich_index += 1
+        
+        
+        # print("lolo --------")
+        # print(bereich_index)
+        # print(tick) #nächster Tick
+        # print(len(TimeSignatureEvents))
+        # print(t)
+        # print("lolo --------")
+        # print()
+        
+        
+        ## TAKTÄNDERUNG
+        
+        if not TaktChangeCounter == len(TimeSignatureEvents)-1:
+        #Falls Höchster TimeSignatureEvent-Eintrag noch nicht erreicht ist
+            if tick == TimeSignatureEvents[TaktChangeCounter+1]['tick']: 
+                #print("blubbi")
+            #wenn mächster TickbereichPos gleich ist wie nächster TaktChangeCmd
+            #wird dieser ausgelesen und der Takt geändert
+            
+                Takt = TimeSignatureEvents[TaktChangeCounter+1]['takt']
+            
+                # Start-Taktnoten generieren 
+                if Takt == 0:
+                    print("   Beat: 4/4 (at Tick "+ str(tick) +")")
+                    bereich_groesse=480
+                
+                if Takt == 1:
+                    print("   Beat: 3/4 (at Tick "+ str(tick) +")")
+                    bereich_groesse=360
 
-
+                if Takt == 2:
+                    print("   Beat: 5/4 (at Tick "+ str(tick) +")")
+                    bereich_groesse=600
+                    
+                if Takt == 3:
+                    print("   Beat: 2/4 (at Tick "+ str(tick) +")")
+                    bereich_groesse=240
+                    
+                if Takt == 4:
+                    print("   Beat: 1/4 (at Tick "+ str(tick) +")")
+                    bereich_groesse=120
+                    
+                print()
     
     
-    ### TAKTBLOCK FÜR C3 Command GENERIEREN  ###
+    
+    
+    
+    ### STUFF FÜR C3 Command und Taktblock SAMMELN ### ------------------------------
     # GANZ ZUM SCHLUSS!
     
-    if C3CallBytesAtAll == True:
-        #C3GotoAdress = f.tell() ## Adresse merken für alle C3 Commands!
-        C3Taktblock = bytearray()
-        C3Taktblock += NOTES_to_BMSDATA(Taktblock, bereich_groesse)## TAKTDINGS BYTES OHNE ALLES writen
-        C3Taktblock += bytes([0xC5]) ## C5 zum Beenden des Calls um zurückzuspringen
-        
-        ## Nun bei den geschriebenen Bytes die Goto Adresse bei allen C3 Commands einfügen!
-        
-        #output = output.replace(b'\xC3\x77\x88\x99', b'\xC3' + (C3GotoAdress.to_bytes(3, byteorder='big'))     )
-        
-    else:
-        C3Taktblock = None
-
-
-    #output += bytes([0xFF])## zu guter letzt
+    TimeSignatureEvents_Sortiert = {eintrag['takt'] for eintrag in TimeSignatureEvents} #alle 'takt' Werte kriegen und mit set entfernen
+    anzahl = len(TimeSignatureEvents_Sortiert)
+    TimeSignatureEvents_SortiertBesser = list(TimeSignatureEvents_Sortiert) #in Liste packen
+    
 
 ###----------------------------------------------------------------
 
@@ -1070,7 +1179,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, Takt=0, LoopAtAll=
     print("------------------------------------") #ist halt übersichtlicher, ne?
 
 
-    return output, CIToutput, C3Taktblock
+    return output, CIToutput, TimeSignatureEvents_SortiertBesser
 
 
 
@@ -1378,22 +1487,11 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, Twilight=False, PPQNt
             print("Volumes will be converted from linear to logarithmic.")
         
         ## ---Timing Channel Check--- ##
-        TaktMarker = Find_Marker_Position(midifile, "BEAT_4/4") # Nach Beat Marker in Midi suchen
+        TaktMarker = Find_Marker_Position(midifile, "BEAT") # Nach Beat Marker in Midi suchen
         if TaktMarker is not None:
             TimingChannel = True
-            Takt = 0
         else:
-            TaktMarker = Find_Marker_Position(midifile, "BEAT_3/4")
-            if TaktMarker is not None:
-                TimingChannel = True
-                Takt = 1
-            else:
-                TaktMarker = Find_Marker_Position(midifile, "BEAT_5/4")
-                if TaktMarker is not None:
-                    TimingChannel = True
-                    Takt = 2
-                else:
-                    TimingChannel = False
+            TimingChannel = False
         
         ## ---Global Midievents ("Tempotrack")--- ##
         output = GLOBALMIDIEVENTS_to_BMSDATA(midifile, AllTicks, Loop)
@@ -1582,26 +1680,64 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, Twilight=False, PPQNt
             if TimingChannel == True and chID == 0 and Twilight == False:
                 print()
                 print("Timing Channel included. ")# + str(chID))
-                output, CIToutput, C3Taktblock = MIDICHANNEL_to_TIMINGandCHORD(midifile, chID, Takt, Loop)
+                output, CIToutput, TimeSignatureEvents = MIDICHANNEL_to_TIMINGandCHORD(midifile, chID, Loop)
+                
+                # Schreibe schonmal output rein
+                f.write(output)
+                f.write(b"\xFF") ##überhaupt notwendig?
                 
                 # ---- C3 Goto Stuff ----
-                if not C3Taktblock == None:
-                    SizeOfFileCurrent = f.tell()
-                    outputSize = len(output)
-                    C3GotoAdress = SizeOfFileCurrent + outputSize + 1 #die 1 wegen der kommenden FF Abgrenzung
+                if not TimeSignatureEvents == None:
+                    for X in range(len(TimeSignatureEvents)):
+                        SizeOfFileCurrent = f.tell() #Momentane Size der BMS merken, für Goto Adresse
+                        
+                        f.seek(0)
+                        inhalt = f.read()
 
-                    output = output.replace(b'\xC3\x77\x88\x99', b'\xC3' + (C3GotoAdress.to_bytes(3, byteorder='big'))     )
-                    f.write(output)
-                    f.write(b"\xFF") ##überhaupt notwendig?
-                    f.write(C3Taktblock)
-                    f.write(b"\xFF")
+                        such_muster = b'\xC3\x77\x77' + TimeSignatureEvents[X].to_bytes(1, byteorder='big')
+                        ersatz_muster = b'\xC3' + SizeOfFileCurrent.to_bytes(3, byteorder='big')
+
+                        inhalt = inhalt.replace(such_muster, ersatz_muster)
+
+                        f.seek(0)
+                        f.write(inhalt)
+                        f.truncate()
+                        
+                        
+                        #WICHTIG: Wieder ganz an das Ende der Datei springen
+                        f.seek(0, 2)
+                        
+
+                        ###C3 Taktblock schreiben
+                        #Erst Parameter anhand Taktes hersuchen
+                        if TimeSignatureEvents[X] == 0:
+                            bereich_groesse=480
+                        if TimeSignatureEvents[X] == 1:
+                            bereich_groesse=360
+                        if TimeSignatureEvents[X] == 2:
+                            bereich_groesse=600
+                        if TimeSignatureEvents[X] == 3:
+                            bereich_groesse=240
+                        if TimeSignatureEvents[X] == 4:
+                            bereich_groesse=120
+                            
+                        #Dann erstmal normale Midi-Noten generieren
+                        Taktblock = Generate_TimingNotes(TimeSignatureEvents[X])
+                        
+                        #Jetzt die Midi-Noten in BMS Data umwandeln
+                        C3Taktblock = bytearray()
+                        C3Taktblock += NOTES_to_BMSDATA(Taktblock, bereich_groesse)## TAKTDINGS BYTES OHNE ALLES writen
+                        C3Taktblock += bytes([0xC5]) ## C5 zum Beenden des Calls um zurückzuspringen
+                        
+                        f.write(C3Taktblock)
+                        f.write(b"\xFF")
             else:
                 if Twilight == True:
                     f.write(b"\xF9\x00\x00") ##Twilight Princess Zusatz
                     
                 output = MIDICHANNEL_to_BMSDATA(midifile, chID, Loop, BankEnlargeMap)
                 
-            f.write(output)
+                f.write(output)
             
             ## ---- LOOP ---- ##
             f.seek(0)  # Zum Anfang zurückspringen
@@ -1737,7 +1873,7 @@ if __name__ == "__main__":
     except:
         Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.9.4.3 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9.5 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
