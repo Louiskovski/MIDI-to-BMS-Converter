@@ -124,7 +124,7 @@ And to ensure that it is mapped correctly, these 3 markers are added to each MID
 [Example Midi](https://kuribo64.net/get.php?id=ILKzVVdTy1yBHYZF)
 
 ### 🎹 Timing and CIT Data Generation
-[Example Midis can be found here](https://kuribo64.net/get.php?id=vAtG6DE5AoRxOOGp)
+[Example Midis can be found here](https://kuribo64.net/get.php?id=a4CYBEd7UATFY33s)
 
 Beat data for timing things like beat blocks, as well as associated chord and note scale data for effects such as item jingles can be generated as follows.
 
@@ -141,17 +141,20 @@ The following time signatures are supported:
 - **2/4**
 - **1/4** (useful for intros, before the actual measure begins)
 
+
 💡 Time signature changes, e.g. from 3/4 to 4/4 in the middle of a song, are supported.
 
-##### Rate
+❗️ Abnormal positions of time signature changes in MIDI that do not align properly with the measure and result in incomplete measures are not supported. Most DAWs typically save these automatically with proper snapping, but some, such as MidiEditor, do not.
+
+#### Jingle Speed
 Optionally, you can slow down the playback speed of jingles. This is useful if the song has a high BPM, which causes the jingles to play back unusually fast.
 
 To do this, insert a marker at any point with the following name:
 
-- **No Marker** Leave the speed as is.
 - **RATE_3/4** Slows down jingle speed to three-quarters (x 0.75)
 - **RATE_2/4** Slows jingle speed by half
-- **RATE_1/4** Slows down jingle speed to two-quarters (x 0.25)
+- **RATE_1/4** Slows the speed down to a quarter of its original speed (x 0.25)
+- ***No Marker*** Leave the speed as is.
 
 #### Chord and Scales
 Chords and scale note pairs are defined in the Midi as follows. These notes must be on a track for channel 0. Any other channel is not used for this.
