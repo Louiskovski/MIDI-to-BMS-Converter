@@ -130,10 +130,28 @@ Beat data for timing things like beat blocks, as well as associated chord and no
 
 💡 If you want to use this with a streamed song (AST), you can load the song into your DAW to define the chords. Make sure you use the same BPM and loop positions as the streamed song. BPM changes during the song are also supported, but they need to be the same as the streamed song!
 
-❗️Time signature changes, e.g. from 3/4 to 4/4 in the middle of a song, or an intro with a different time signature than the rest of the song (like Good Egg Galaxy's theme) are not currently supported.
-
 #### Timing/Beat
-To enable timing and chord generation for your midi, add a marker called **BEAT_4/4** for a four-quarter time song or a **BEAT_3/4** for a three-quarter time song to the midi at any location.
+To enable timing and chord generation for your midi, add a marker called **BEAT** to the midi at any location.
+The time signature set in MIDI is adopted directly.
+
+The following time signatures are supported:
+- **5/4**
+- **4/4**
+- **3/4**
+- **2/4**
+- **1/4** (useful for intros, before the actual measure begins)
+
+💡 Time signature changes, e.g. from 3/4 to 4/4 in the middle of a song, are supported.
+
+##### Rate
+Optionally, you can slow down the playback speed of jingles. This is useful if the song has a high BPM, which causes the jingles to play back unusually fast.
+
+To do this, insert a marker at any point with the following name:
+
+- **No Marker** Leave the speed as is.
+- **RATE_3/4** Slows down jingle speed to three-quarters (x 0.75)
+- **RATE_2/4** Slows jingle speed by half
+- **RATE_1/4** Slows down jingle speed to two-quarters (x 0.25)
 
 #### Chord and Scales
 Chords and scale note pairs are defined in the Midi as follows. These notes must be on a track for channel 0. Any other channel is not used for this.
@@ -183,9 +201,8 @@ To install Mido, open command line and enter ***pip install mido***
 The Bat files with "compressed" requires path to a compress tool, such as yaz0enc.exe from [RARC Tools](https://kuribo64.net/get.php?id=5c98RKoV3uJdGBin). Open the Bat with a text editor and replace "C:\Tools\yaz0enc.exe" with path to the exe.
 
 ## Plans for Updates
-* Time signature changes support for Beat and CIT Generation
 * Control about BMS-only events (such as jumping to other parts of the song) via Markers or similar
-* Compression (using subcalls)
+* Compression for channels other than the timing channel. (using subcalls)
 
 ## Special Thanks
 * **SY24, Super Hackio and Xayrga** for documenting BMS format
