@@ -9,7 +9,7 @@ from collections import defaultdict
 from mido import Message
 import re
 
-def Generate_TimingNotes(Takt=0):
+def Generate_TimingNotes(Takt=0, Rate=1.0):
     sequence = []
 
     def add_notes(start_time, pitch, count, length, spacing, first_velocity):
@@ -29,41 +29,53 @@ def Generate_TimingNotes(Takt=0):
     note_Db2 = 25       # Achteltaktnoten, mit Abstand. (Positionen zum Abspielen der Melodien/Jingles)
 
 
-    #Takt = 1 #TEST
-
     # Alle Reihen sollen bei Tick 0 starten
     if Takt == 0: #(4/4 Takt)
+        NoteNo = int(32 * Rate)
+        Space = 480 / NoteNo
+        #die count und spacing miteinander malgenommen muss immer die Ticklänge eines Taktbereiches ergeben!
+        
         sequence += add_notes(0, note_C2, 4, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 8, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 16, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 32, 13, 15, 34)
-        #sequence += add_notes(0, note_Db2, 16, 13, 30, 34) #wenn rate halb sein soll (halb schnell) Broken??
-        #sequence += add_notes(0, note_Db2, 24, 13, 20, 34) #wenn rate 3/4 sein soll
-        #die count und spacing miteinander malgenommen muss immer 480 ergeben!
+        sequence += add_notes(0, note_Db2, NoteNo, 13, Space, 34)
+
         
     if Takt == 1:  #(3/4 Takt)
+        NoteNo = int(24 * Rate)
+        Space = 360 / NoteNo
+    
         sequence += add_notes(0, note_C2, 3, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 6, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 12, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 24, 13, 15, 34)
+        sequence += add_notes(0, note_Db2, NoteNo, 13, Space, 34)
     
-    if Takt == 2: #(5/4 Takt) #WIP
+    if Takt == 2: #(5/4 Takt)
+        NoteNo = int(40 * Rate)
+        Space = 600 / NoteNo
+    
         sequence += add_notes(0, note_C2, 5, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 10, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 20, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 40, 13, 15, 34)
+        sequence += add_notes(0, note_Db2, NoteNo, 13, Space, 34)
     
     if Takt == 3: #(2/4 Takt)
+        NoteNo = int(16 * Rate)
+        Space = 240 / NoteNo
+    
         sequence += add_notes(0, note_C2, 2, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 4, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 8, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 16, 13, 15, 34)
+        sequence += add_notes(0, note_Db2, NoteNo, 13, Space, 34)
     
     if Takt == 4: #(1/4 Takt)
+        NoteNo = int(8 * Rate)
+        Space = 120 / NoteNo
+    
         sequence += add_notes(0, note_C2, 1, 120, 120, 13)
         sequence += add_notes(0, note_Fs2, 2, 60, 60, 16)
         sequence += add_notes(0, note_Eb2, 4, 30, 30, 22)
-        sequence += add_notes(0, note_Db2, 8, 13, 15, 34)
+        sequence += add_notes(0, note_Db2, NoteNo, 13, Space, 34)
     
     # Nach Zeit sortieren, damit sie korrekt verarbeitet werden können
     sequence.sort(key=lambda e: e[0])
@@ -937,7 +949,7 @@ def MIDICHANNEL_to_TIMINGandCHORD(midifile, target_channel=1, LoopAtAll=False):
                 print("TEST: Loop End Am Start!")
                 print(LoopEndTICK)
             
-            output += bytes([0xE1, TriggernoteCounter_forLoop & 0xFF, TriggernoteCounter_forLoop & 0xFF]) ## E1 Trigger wegen loop
+            output += bytes([0xE2, TriggernoteCounter_forLoop & 0xFF, 0xE3, TriggernoteCounter_forLoop & 0xFF]) ## E1 Trigger
             output += bytes([0x77, 0x77, 0x77, 0x02])## Loop End
             # output += bytes([0xFF])## FF
             
@@ -1493,6 +1505,22 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, Twilight=False, PPQNt
         else:
             TimingChannel = False
         
+        ## ---Timing Channel - Ratecheck --- ##
+        if TimingChannel == True:
+            RateMarker = Find_Marker_Position(midifile, "RATE_3/4")
+            if RateMarker is not None:
+                Rate = 0.75
+            else:
+                RateMarker = Find_Marker_Position(midifile, "RATE_1/2")
+                if RateMarker is not None:
+                    Rate = 0.5
+                else:
+                    RateMarker = Find_Marker_Position(midifile, "RATE_1/4")
+                    if RateMarker is not None:
+                        Rate = 0.25
+                    else:
+                        Rate = 1
+        
         ## ---Global Midievents ("Tempotrack")--- ##
         output = GLOBALMIDIEVENTS_to_BMSDATA(midifile, AllTicks, Loop)
         f.write(output)
@@ -1680,6 +1708,11 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, Twilight=False, PPQNt
             if TimingChannel == True and chID == 0 and Twilight == False:
                 print()
                 print("Timing Channel included. ")# + str(chID))
+                print()
+                if Rate == 1.0:
+                    print("Rate: 1.0 (Standard)")
+                else:
+                    print("Rate: "+str(Rate))
                 output, CIToutput, TimeSignatureEvents = MIDICHANNEL_to_TIMINGandCHORD(midifile, chID, Loop)
                 
                 # Schreibe schonmal output rein
@@ -1722,7 +1755,7 @@ def START(midifile, Output_BMS, LinearToLogarithmic=False, Twilight=False, PPQNt
                             bereich_groesse=120
                             
                         #Dann erstmal normale Midi-Noten generieren
-                        Taktblock = Generate_TimingNotes(TimeSignatureEvents[X])
+                        Taktblock = Generate_TimingNotes(TimeSignatureEvents[X], Rate)
                         
                         #Jetzt die Midi-Noten in BMS Data umwandeln
                         C3Taktblock = bytearray()
@@ -1873,7 +1906,7 @@ if __name__ == "__main__":
     except:
         Twilight = False
     
-    print("--- 🎵 Midi to BMS v.0.9.9.5 🎶 ---") # to check Version
+    print("--- 🎵 Midi to BMS v.0.9.9.5.5 🎶 ---") # to check Version
     print()
     START(Input_MIDI, Output_BMS, LinearToLogarithmic, Twilight)
     print()
